@@ -6,6 +6,7 @@ Welcome to the Github repository for the lab demonstration!
 > Twitter:  @nickrusso42518
 
 ## initial-configs
+*Coming soon!*
 This folder contains the initial configurations for the demo.
 
 ## final-configs
@@ -25,4 +26,4 @@ All of my Cisco Live sessions are easily accessible through my personal website.
 ## Reference topology
 Please reference this diagram when reviewing this Cisco Live session.
 
-![Reference topology](topology.png)
+![Reference topology](topology.jpg)
