@@ -1,0 +1,203 @@
+version 15.6
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname R19
+!
+boot-start-marker
+boot-end-marker
+!
+!
+!
+no aaa new-model
+!
+!
+!
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+!
+!
+!
+!
+!
+no ip icmp rate-limit unreachable
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+
+
+!
+!
+!
+!
+no ip domain lookup
+ip cef
+ipv6 unicast-routing
+ipv6 cef
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+redundancy
+!
+no cdp log mismatch duplex
+!
+ip tcp synwait-time 5
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 10.0.0.19 255.255.255.255
+!
+interface Loopback1
+ description INTERNET ENDPOINT
+ ip address 198.51.100.19 255.255.255.0 secondary
+ ip address 11.0.0.1 255.255.255.0 secondary
+ ip address 192.0.2.19 255.255.255.0 secondary
+ ip address 203.0.113.19 255.255.255.0
+ ipv6 address 2001:DB8:1000::19/48
+ ipv6 address 2001:DB8:2000::19/48
+ ipv6 address 2001:DB8:3000::19/48
+!
+interface Ethernet0/0
+ description R20
+ ip address 10.19.20.19 255.255.255.0
+ ipv6 address FE80::19 link-local
+ ipv6 address FC00:10:19:20::19/64
+!
+interface Ethernet0/1
+ no ip address
+ shutdown
+!
+interface Ethernet0/2
+ description R6
+ ip address 10.6.19.19 255.255.255.0
+ ipv6 address FE80::19 link-local
+ ipv6 address FC00:10:6:19::19/64
+!
+interface Ethernet0/3
+ no ip address
+ shutdown
+!
+interface Serial1/0
+ description R17
+ ip address 10.7.19.19 255.255.255.0
+ ipv6 address FE80::19 link-local
+ ipv6 address FC00:10:7:19::19/64
+ serial restart-delay 0
+!
+interface Serial1/1
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+interface Serial1/2
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+interface Serial1/3
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+router bgp 42518
+ bgp router-id 10.0.0.19
+ bgp log-neighbor-changes
+ bgp update-delay 3
+ no bgp default ipv4-unicast
+ neighbor 10.6.19.6 remote-as 65067
+ neighbor 10.7.19.7 remote-as 65067
+ neighbor 10.19.20.20 remote-as 65020
+ neighbor FC00:10:6:19::6 remote-as 65067
+ neighbor FC00:10:7:19::7 remote-as 65067
+ neighbor FC00:10:19:20::20 remote-as 65020
+ !
+ address-family ipv4
+  network 192.0.2.0
+  network 198.51.100.0
+  network 203.0.113.0
+  neighbor 10.6.19.6 activate
+  neighbor 10.6.19.6 filter-list 1 out
+  neighbor 10.7.19.7 activate
+  neighbor 10.7.19.7 filter-list 1 out
+  neighbor 10.19.20.20 activate
+  neighbor 10.19.20.20 filter-list 1 out
+ exit-address-family
+ !
+ address-family ipv6
+  network 2001:DB8:1000::/48
+  network 2001:DB8:2000::/48
+  network 2001:DB8:3000::/48
+  neighbor FC00:10:6:19::6 activate
+  neighbor FC00:10:6:19::6 weight 100
+  neighbor FC00:10:6:19::6 filter-list 1 out
+  neighbor FC00:10:7:19::7 activate
+  neighbor FC00:10:7:19::7 filter-list 1 out
+  neighbor FC00:10:19:20::20 activate
+  neighbor FC00:10:19:20::20 filter-list 1 out
+ exit-address-family
+!
+ip forward-protocol nd
+!
+ip as-path access-list 1 permit ^$
+!
+no ip http server
+no ip http secure-server
+ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+!
+ipv6 ioam timestamp
+!
+!
+!
+control-plane
+!
+!
+!
+!
+!
+!
+!
+!
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+line vty 0 4
+ login
+ transport input none
+!
+!
+end

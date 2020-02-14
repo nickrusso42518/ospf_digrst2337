@@ -1,0 +1,181 @@
+version 15.6
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname R8
+!
+boot-start-marker
+boot-end-marker
+!
+!
+!
+no aaa new-model
+!
+!
+!
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+!
+!
+!
+!
+!
+no ip icmp rate-limit unreachable
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+
+
+!
+!
+!
+!
+no ip domain lookup
+ip cef
+ipv6 unicast-routing
+ipv6 cef
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+redundancy
+!
+no cdp log mismatch duplex
+!
+ip tcp synwait-time 5
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 10.0.0.8 255.255.255.255
+ ip ospf 1 area 0
+ ipv6 address FE80::8 link-local
+ ipv6 address FC00::8/128
+ ospfv3 1 ipv6 area 0
+!
+interface Tunnel100
+ ip address 10.0.100.8 255.255.255.0
+ no ip redirects
+ ip nhrp network-id 100
+ ip nhrp redirect
+ ip ospf network point-to-multipoint non-broadcast
+ ip ospf database-filter all out
+ ip ospf 1 area 2
+ ip ospf cost 100
+ ipv6 address FE80::8 link-local
+ ipv6 nhrp network-id 100
+ ipv6 nhrp redirect
+ ospfv3 1 ipv6 area 2
+ ospfv3 1 ipv6 network point-to-multipoint non-broadcast
+ ospfv3 1 ipv6 cost 100
+ ospfv3 1 ipv6 database-filter all out
+ tunnel source Ethernet0/0
+ tunnel mode gre multipoint
+!
+interface Ethernet0/0
+ description R14
+ ip address 10.8.14.8 255.255.255.0
+!
+interface Ethernet0/1
+ no ip address
+ shutdown
+!
+interface Ethernet0/2
+ description R1
+ ip address 10.1.8.8 255.255.255.0
+ ip ospf network point-to-point
+ ip ospf 1 area 0
+ ip ospf cost 10
+ ipv6 address FE80::8 link-local
+ ospfv3 1 ipv6 area 0
+ ospfv3 1 ipv6 network point-to-point
+ ospfv3 1 ipv6 cost 10
+!
+interface Ethernet0/3
+ description R2
+ ip address 10.2.8.8 255.255.255.0
+ ip ospf network point-to-point
+ ip ospf 1 area 0
+ ip ospf cost 10
+ ipv6 address FE80::8 link-local
+ ospfv3 1 ipv6 area 0
+ ospfv3 1 ipv6 network point-to-point
+ ospfv3 1 ipv6 cost 10
+!
+router ospfv3 1
+ router-id 10.0.0.8
+ !
+ address-family ipv6 unicast
+  passive-interface Loopback0
+  area 2 stub no-summary
+ exit-address-family
+!
+router ospf 1
+ router-id 10.0.0.8
+ area 2 stub no-summary
+ passive-interface Loopback0
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+ip route 10.9.0.0 255.255.0.0 10.8.14.14 name R9_TUNNEL
+ip route 10.10.0.0 255.255.0.0 10.8.14.14 name R10_TUNNEL
+ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+!
+ipv6 ioam timestamp
+!
+!
+!
+control-plane
+!
+!
+!
+!
+!
+!
+!
+!
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+line vty 0 4
+ login
+ transport input none
+!
+!
+end

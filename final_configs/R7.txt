@@ -1,0 +1,240 @@
+version 15.6
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname R7
+!
+boot-start-marker
+boot-end-marker
+!
+!
+!
+no aaa new-model
+!
+!
+!
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+!
+!
+!
+!
+!
+no ip icmp rate-limit unreachable
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+
+
+!
+!
+!
+!
+no ip domain lookup
+ip cef
+ipv6 unicast-routing
+ipv6 cef
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+redundancy
+!
+no cdp log mismatch duplex
+!
+ip tcp synwait-time 5
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 10.0.0.7 255.255.255.255
+ ip ospf 1 area 0
+ ipv6 address FE80::7 link-local
+ ipv6 address FC00::7/128
+ ospfv3 1 ipv6 area 0
+!
+interface Ethernet0/0
+ description R6
+ ip address 10.6.7.7 255.255.255.0
+ ip nat inside
+ ip virtual-reassembly in
+ ip ospf network point-to-point
+ ip ospf 1 area 0
+ ip ospf cost 10
+ ipv6 address FE80::7 link-local
+ ospfv3 1 ipv6 area 0
+ ospfv3 1 ipv6 network point-to-point
+ ospfv3 1 ipv6 cost 10
+!
+interface Ethernet0/1
+ description R2
+ ip address 10.2.7.7 255.255.255.0
+ ip nat inside
+ ip virtual-reassembly in
+ ip ospf network point-to-point
+ ip ospf 1 area 0
+ ip ospf cost 10
+ ipv6 address FE80::7 link-local
+ ospfv3 1 ipv6 area 0
+ ospfv3 1 ipv6 network point-to-point
+ ospfv3 1 ipv6 cost 10
+!
+interface Ethernet0/2
+ no ip address
+ shutdown
+!
+interface Ethernet0/3
+ no ip address
+ shutdown
+!
+interface Serial1/0
+ description R19
+ ip address 10.7.19.7 255.255.255.0
+ ip nat outside
+ ip virtual-reassembly in
+ ipv6 address FE80::7 link-local
+ ipv6 address FC00:10:7:19::7/64
+ serial restart-delay 0
+!
+interface Serial1/1
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+interface Serial1/2
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+interface Serial1/3
+ no ip address
+ shutdown
+ serial restart-delay 0
+!
+router ospfv3 1
+ router-id 10.0.0.7
+ !
+ address-family ipv6 unicast
+  passive-interface Loopback0
+  default-information originate metric 20 route-map RM_OSPFV3_DEFAULT
+ exit-address-family
+!
+router ospf 1
+ router-id 10.0.0.7
+ redistribute bgp 65067 subnets route-map RM_BGP_TO_OSPF
+ passive-interface Loopback0
+ default-information originate metric 20 route-map RM_OSPF_DEFAULT
+!
+router bgp 65067
+ bgp log-neighbor-changes
+ no bgp default ipv4-unicast
+ neighbor 10.0.0.6 remote-as 65067
+ neighbor 10.0.0.6 update-source Loopback0
+ neighbor 10.7.19.19 remote-as 42518
+ neighbor FC00::6 remote-as 65067
+ neighbor FC00::6 update-source Loopback0
+ neighbor FC00:10:7:19::19 remote-as 42518
+ !
+ address-family ipv4
+  network 100.64.7.0 mask 255.255.255.0
+  neighbor 10.0.0.6 activate
+  neighbor 10.7.19.19 activate
+ exit-address-family
+ !
+ address-family ipv6
+  network FC00::/16
+  neighbor FC00::6 activate
+  neighbor FC00:10:7:19::19 activate
+ exit-address-family
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+ip nat pool NAT_POOL 100.64.7.1 100.64.7.254 prefix-length 24
+ip nat inside source list ACL_NAT pool NAT_POOL
+ip route 0.0.0.0 0.0.0.0 Null0 name DISCARD_DEFAULT
+ip route 100.64.7.0 255.255.255.0 Null0 name NAT_POOL
+ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+!
+ip access-list extended ACL_NAT
+ deny   tcp any any eq bgp
+ deny   tcp any eq bgp any
+ permit ip 10.0.0.0 0.255.255.255 any
+!
+!
+ip prefix-list PL_BGP_PRESENT_FOR_DEFAULT seq 10 permit 192.0.2.0/24
+ip prefix-list PL_BGP_PRESENT_FOR_DEFAULT seq 20 permit 198.51.100.0/24
+ip prefix-list PL_BGP_PRESENT_FOR_DEFAULT seq 30 permit 203.0.113.0/24
+!
+ip prefix-list PL_LEAK_203 seq 5 permit 203.0.113.0/24
+ipv6 route FC00::/16 Null0 name BGP_AGG
+ipv6 ioam timestamp
+!
+!
+ipv6 prefix-list PL_BGP_PRESENT_FOR_DEFAULT_V6 seq 5 permit 2001:DB8:1000::/48
+ipv6 prefix-list PL_BGP_PRESENT_FOR_DEFAULT_V6 seq 10 permit 2001:DB8:2000::/48
+ipv6 prefix-list PL_BGP_PRESENT_FOR_DEFAULT_V6 seq 15 permit 2001:DB8:3000::/48
+route-map RM_BGP_TO_OSPF permit 10
+ match ip address prefix-list PL_LEAK_203
+!
+route-map RM_OSPFV3_DEFAULT permit 10
+ match ipv6 address prefix-list PL_BGP_PRESENT_FOR_DEFAULT_V6
+!
+route-map RM_OSPF_DEFAULT permit 10
+ match ip address prefix-list PL_BGP_PRESENT_FOR_DEFAULT
+!
+!
+!
+control-plane
+!
+!
+!
+!
+!
+!
+!
+!
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+line vty 0 4
+ login
+ transport input none
+!
+!
+end

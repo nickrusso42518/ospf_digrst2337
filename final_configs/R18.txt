@@ -1,0 +1,204 @@
+version 15.6
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname R18
+!
+boot-start-marker
+boot-end-marker
+!
+!
+vrf definition A
+ rd 1:1
+ !
+ address-family ipv4
+  route-target export 1:1
+  route-target import 1:1
+ exit-address-family
+!
+!
+no aaa new-model
+!
+!
+!
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+!
+!
+!
+!
+!
+no ip icmp rate-limit unreachable
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+
+
+!
+!
+!
+!
+no ip domain lookup
+ip cef
+ipv6 unicast-routing
+ipv6 cef
+!
+multilink bundle-name authenticated
+mpls label range 18000 18999
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+redundancy
+!
+no cdp log mismatch duplex
+!
+ip tcp synwait-time 5
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 10.0.0.18 255.255.255.255
+ ip ospf 1 area 4
+ ipv6 address FE80::18 link-local
+ ipv6 address FC00::18/128
+ ospfv3 1 ipv6 area 4
+!
+interface Ethernet0/0
+ description R9 (VRF A)
+ vrf forwarding A
+ ip address 10.9.18.18 255.255.255.0
+ ospfv3 1 ipv6 network point-to-point
+!
+interface Ethernet0/1
+ description R15
+ ip address 10.15.18.18 255.255.255.0
+ ip ospf network point-to-point
+ ip ospf cost 10
+ ipv6 address FE80::18 link-local
+ ospfv3 1 ipv6 area 4
+ ospfv3 1 ipv6 network point-to-point
+ ospfv3 1 ipv6 cost 10
+ bfd interval 200 min_rx 200 multiplier 3
+!
+interface Ethernet0/2
+ description R17
+ ip address 10.17.18.18 255.255.255.0
+ ip ospf network point-to-point
+ ip ospf cost 10
+ ipv6 address FE80::18 link-local
+ ospfv3 1 ipv6 area 4
+ ospfv3 1 ipv6 network point-to-point
+ ospfv3 1 ipv6 cost 10
+ bfd interval 200 min_rx 200 multiplier 3
+!
+interface Ethernet0/3
+ no ip address
+ shutdown
+!
+router ospfv3 1
+ router-id 10.0.0.18
+ !
+ address-family ipv6 unicast
+  timers throttle spf 50 300 1000
+  timers throttle lsa 50 250 1000
+  passive-interface Loopback0
+  bfd all-interfaces
+ exit-address-family
+!
+router ospf 1
+ mpls ldp autoconfig
+ router-id 10.0.0.18
+ prefix-suppression
+ timers throttle spf 50 300 1000
+ timers throttle lsa 50 250 1000
+ passive-interface Loopback0
+ network 0.0.0.0 255.255.255.255 area 4
+ bfd all-interfaces
+!
+router bgp 1
+ template peer-session IBGP
+  remote-as 1
+  update-source Loopback0
+ exit-peer-session
+ !
+ bgp router-id 10.0.0.18
+ bgp log-neighbor-changes
+ no bgp default ipv4-unicast
+ neighbor 10.0.0.14 inherit peer-session IBGP
+ neighbor 10.0.0.15 inherit peer-session IBGP
+ !
+ address-family vpnv4
+  neighbor 10.0.0.14 activate
+  neighbor 10.0.0.14 send-community extended
+  neighbor 10.0.0.15 activate
+  neighbor 10.0.0.15 send-community extended
+ exit-address-family
+ !
+ address-family ipv4 vrf A
+  redistribute connected
+ exit-address-family
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+!
+ipv6 ioam timestamp
+!
+!
+mpls ldp router-id Loopback0 force
+!
+control-plane
+!
+!
+!
+!
+!
+!
+!
+!
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+line vty 0 4
+ login
+ transport input none
+!
+ntp source Loopback0
+ntp server 10.0.0.14
+!
+end

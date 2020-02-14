@@ -1,0 +1,169 @@
+version 15.6
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname R9
+!
+boot-start-marker
+boot-end-marker
+!
+!
+!
+no aaa new-model
+!
+!
+!
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+!
+!
+!
+!
+!
+no ip icmp rate-limit unreachable
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+
+
+!
+!
+!
+!
+no ip domain lookup
+ip cef
+ipv6 unicast-routing
+ipv6 cef
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+redundancy
+!
+no cdp log mismatch duplex
+!
+ip tcp synwait-time 5
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 10.0.0.9 255.255.255.255
+ ip ospf 1 area 2
+ ipv6 address FE80::9 link-local
+ ipv6 address FC00::9/128
+ ospfv3 1 ipv6 area 2
+!
+interface Tunnel100
+ ip address 10.0.100.9 255.255.255.0
+ no ip redirects
+ ip nhrp network-id 100
+ ip nhrp nhs dynamic nbma 10.8.14.8 multicast
+ ip nhrp shortcut
+ ip ospf network point-to-multipoint
+ ip ospf 1 area 2
+ ip ospf cost 100
+ ipv6 address FE80::9 link-local
+ ipv6 nhrp network-id 100
+ ipv6 nhrp nhs FE80::8 nbma 10.8.14.8 multicast
+ ipv6 nhrp shortcut
+ ospfv3 1 ipv6 area 2
+ ospfv3 1 ipv6 network point-to-multipoint
+ ospfv3 1 ipv6 cost 100
+ tunnel source Ethernet0/0
+ tunnel mode gre multipoint
+!
+interface Ethernet0/0
+ description R18
+ ip address 10.9.18.9 255.255.255.0
+!
+interface Ethernet0/1
+ no ip address
+ shutdown
+!
+interface Ethernet0/2
+ no ip address
+ shutdown
+!
+interface Ethernet0/3
+ no ip address
+ shutdown
+!
+router ospfv3 1
+ router-id 10.0.0.9
+ !
+ address-family ipv6 unicast
+  passive-interface Loopback0
+  area 2 stub
+ exit-address-family
+!
+router ospf 1
+ router-id 10.0.0.9
+ area 2 stub
+ passive-interface Loopback0
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+ip route 0.0.0.0 0.0.0.0 10.0.100.8 name DMVPN_UPSTREAM
+ip route 10.8.0.0 255.255.0.0 10.9.18.18 name R8_TUNNEL
+ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+!
+ipv6 route ::/0 Tunnel100 FE80::8 name DMVPN_UPSTREAM_V6
+ipv6 ioam timestamp
+!
+!
+!
+control-plane
+!
+!
+!
+!
+!
+!
+!
+alias exec web more http://cisco:cisco@10.0.0.13/hello.txt
+!
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+line vty 0 4
+ login
+ transport input none
+!
+!
+end

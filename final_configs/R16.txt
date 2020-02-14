@@ -1,0 +1,178 @@
+version 15.6
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname R16
+!
+boot-start-marker
+boot-end-marker
+!
+!
+!
+no aaa new-model
+!
+!
+!
+mmi polling-interval 60
+no mmi auto-configure
+no mmi pvc
+mmi snmp-timeout 180
+!
+!
+!
+!
+!
+no ip icmp rate-limit unreachable
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+
+
+!
+!
+!
+!
+no ip domain lookup
+ip cef
+ipv6 unicast-routing
+ipv6 cef
+!
+multilink bundle-name authenticated
+mpls label range 16000 16999
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+redundancy
+!
+no cdp log mismatch duplex
+!
+ip tcp synwait-time 5
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 10.0.0.16 255.255.255.255
+ ip ospf 1 area 4
+ ipv6 address FE80::16 link-local
+ ipv6 address FC00::16/128
+ ospfv3 1 ipv6 area 4
+!
+interface Ethernet0/0
+ description R17
+ ip address 10.16.17.16 255.255.255.0
+ ip ospf network point-to-point
+ ip ospf cost 10
+ ipv6 address FE80::16 link-local
+ ospfv3 1 ipv6 area 4
+ ospfv3 1 ipv6 network point-to-point
+ ospfv3 1 ipv6 cost 10
+ bfd interval 200 min_rx 200 multiplier 3
+!
+interface Ethernet0/1
+ no ip address
+ shutdown
+!
+interface Ethernet0/2
+ description R14
+ ip address 10.14.16.16 255.255.255.0
+ ip ospf network point-to-point
+ ip ospf cost 10
+ ipv6 address FE80::16 link-local
+ ospfv3 1 ipv6 area 4
+ ospfv3 1 ipv6 network point-to-point
+ ospfv3 1 ipv6 cost 10
+ bfd interval 200 min_rx 200 multiplier 3
+!
+interface Ethernet0/3
+ description R15
+ ip address 10.15.16.16 255.255.255.0
+ ip ospf network point-to-point
+ ip ospf cost 10
+ ipv6 address FE80::16 link-local
+ ospfv3 1 ipv6 area 4
+ ospfv3 1 ipv6 network point-to-point
+ ospfv3 1 ipv6 cost 10
+ bfd interval 200 min_rx 200 multiplier 3
+!
+router ospfv3 1
+ router-id 10.0.0.16
+ !
+ address-family ipv6 unicast
+  timers throttle spf 50 300 1000
+  timers throttle lsa 50 250 1000
+  passive-interface Loopback0
+  bfd all-interfaces
+ exit-address-family
+!
+router ospf 1
+ mpls ldp autoconfig
+ router-id 10.0.0.16
+ prefix-suppression
+ timers throttle spf 50 300 1000
+ timers throttle lsa 50 250 1000
+ passive-interface Loopback0
+ network 0.0.0.0 255.255.255.255 area 4
+ bfd all-interfaces
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+ip ssh server algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+ip ssh client algorithm encryption aes128-ctr aes192-ctr aes256-ctr
+!
+ipv6 ioam timestamp
+!
+!
+mpls ldp router-id Loopback0 force
+!
+control-plane
+!
+!
+!
+!
+!
+!
+!
+!
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+line vty 0 4
+ login
+ transport input none
+!
+ntp source Loopback0
+ntp server 10.0.0.14
+!
+end
