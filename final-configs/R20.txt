@@ -113,6 +113,7 @@ router ospfv3 1
  !
  address-family ipv6 unicast
   passive-interface Loopback0
+  default-information originate always
  exit-address-family
 !
 router ospf 1
