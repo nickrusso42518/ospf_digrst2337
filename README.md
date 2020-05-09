@@ -1,19 +1,16 @@
-# Deploying OSPF in Modern Networks (BRKRST-2337)
+# OSPF Deployment in Modern Networks (DISRST-2337)
 Welcome to the Github repository for the lab demonstration!
 
 > Contact information:\
 > Email:    njrusmc@gmail.com\
 > Twitter:  @nickrusso42518
 
-## initial-configs
-*Coming soon!*
-This folder contains the initial configurations for the demo.
+## configs/
+This folder contains configurations for the entire topology. It includes both
+IPv4 (OSPFv2) and IPv6 (OSPFv3) features in all parts of the network.
+completed.
 
-## final-configs
-This folder contains configurations with the entire design
-completed. You can use this to check your work.
-
-## ping-scripts
+## ping-scripts/
 Collection of TCL scripts to run on subsets of routers to check
 IPv4 and IPv6 connectivity. Use these after standing up the final
 configs to ensure everything is working.
