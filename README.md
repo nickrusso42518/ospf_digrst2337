@@ -1,4 +1,4 @@
-# OSPF Deployment in Modern Networks (DISRST-2337)
+# OSPF Deployment in Modern Networks (DIGRST-2337)
 Welcome to the Github repository for the lab demonstration!
 
 > Contact information:\
@@ -18,7 +18,7 @@ configs to ensure everything is working.
 ## Reference material
 All of my Cisco Live sessions are easily accessible through my personal website.
 
-> http://njrusmc.net/conf/conf.html
+> http://njrusmc.net/video/video.html
 
 ## Reference topology
 Please reference this diagram when reviewing this Cisco Live session.
